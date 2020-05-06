@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>PHP中的浮点数问题 | Agphp</title>
+  <meta name="description" content="如果用php的+-*&#x2F;计算浮点数的时候，可能会遇到一些计算结果错误的问题，比如下面这种情况：  1234echo intval(0.58*100);&#x2F;&#x2F; 57echo (int) (0.58*100);&#x2F;&#x2F; 57echo round(0.58*100); &#x2F;&#x2F; 58var_dump((0.1 + 0.7) == 0.8); &#x2F;&#x2F; false 之所以出现上面的问题是因为PHP 是使用二进制表示浮点数">
+<meta name="keywords" content="PHP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PHP中的浮点数问题">
+<meta property="og:url" content="https:&#x2F;&#x2F;blog.agphp.com&#x2F;2018&#x2F;10&#x2F;27&#x2F;php-float.html">
+<meta property="og:site_name" content="Agphp Blog">
+<meta property="og:description" content="如果用php的+-*&#x2F;计算浮点数的时候，可能会遇到一些计算结果错误的问题，比如下面这种情况：  1234echo intval(0.58*100);&#x2F;&#x2F; 57echo (int) (0.58*100);&#x2F;&#x2F; 57echo round(0.58*100); &#x2F;&#x2F; 58var_dump((0.1 + 0.7) == 0.8); &#x2F;&#x2F; false 之所以出现上面的问题是因为PHP 是使用二进制表示浮点数">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-11-16T03:49:50.626Z">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.agphp.com/2018/10/27/php-float.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Agphp Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.jpg" type="image/x-icon">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+  
+  
+  
+</head>
+
+
+<body class="main-center theme-blue" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/huhijay" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">Huhijay</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Web Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Beijing, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav menu-highlight">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/huhijay" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/PHP/">PHP</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/" rel="tag">GitHub</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JavaScript/" rel="tag">JavaScript</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Layui/" rel="tag">Layui</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NPM/" rel="tag">NPM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Node/" rel="tag">Node</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/NodeJS/" rel="tag">NodeJS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/PHP/" rel="tag">PHP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Xshell/" rel="tag">Xshell</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E5%85%B7/" rel="tag">工具</a><span class="tag-list-count">2</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/GitHub/" style="font-size: 13px;">GitHub</a> <a href="/tags/Hexo/" style="font-size: 13px;">Hexo</a> <a href="/tags/JavaScript/" style="font-size: 14px;">JavaScript</a> <a href="/tags/Layui/" style="font-size: 13px;">Layui</a> <a href="/tags/MySQL/" style="font-size: 13px;">MySQL</a> <a href="/tags/NPM/" style="font-size: 14px;">NPM</a> <a href="/tags/Node/" style="font-size: 14px;">Node</a> <a href="/tags/NodeJS/" style="font-size: 13px;">NodeJS</a> <a href="/tags/PHP/" style="font-size: 14px;">PHP</a> <a href="/tags/Xshell/" style="font-size: 13px;">Xshell</a> <a href="/tags/%E5%B7%A5%E5%85%B7/" style="font-size: 14px;">工具</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/04/">四月 2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/10/">十月 2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/10/">十月 2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/04/">四月 2017</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%B7%A5%E5%85%B7/">工具</a>
+              </p>
+              <p class="item-title">
+                <a href="/2019/04/03/hexo-build-bolg.html" class="title">Hexo搭建个人博客</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-04-03T10:24:00.000Z" itemprop="datePublished">2019-04-03</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+              </p>
+              <p class="item-title">
+                <a href="/2019/04/02/install-nodejs.html" class="title">Linux系统安装Nodejs</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2019-04-02T10:24:00.000Z" itemprop="datePublished">2019-04-02</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/PHP/">PHP</a>
+              </p>
+              <p class="item-title">
+                <a href="/2018/10/27/php-float.html" class="title">PHP中的浮点数问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2018-10-26T17:24:00.000Z" itemprop="datePublished">2018-10-27</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/PHP/">PHP</a>
+              </p>
+              <p class="item-title">
+                <a href="/2017/10/25/php-func-identity-verify.html" class="title">PHP常用函数-身份证格式校验</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2017-10-25T10:06:00.000Z" itemprop="datePublished">2017-10-25</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+              </p>
+              <p class="item-title">
+                <a href="/2017/10/23/input-limit-num.html" class="title">表单控制输入数字</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2017-10-23T11:04:00.000Z" itemprop="datePublished">2017-10-23</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-php-float" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      PHP中的浮点数问题
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/10/27/php-float.html" class="article-date">
+	  <time datetime="2018-10-26T17:24:00.000Z" itemprop="datePublished">2018-10-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/PHP/">PHP</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link" href="/tags/PHP/" rel="tag">PHP</a>
+  </span>
+
+
+        
+	<span class="article-read hidden-xs">
+	    <i class="icon icon-eye-fill" aria-hidden="true"></i>
+	    <span id="busuanzi_container_page_pv">
+			<span id="busuanzi_value_page_pv">0</span>
+		</span>
+	</span>
+
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/10/27/php-float.html#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>如果用php的+-*/计算浮点数的时候，可能会遇到一些计算结果错误的问题，比如下面这种情况： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">echo intval(0.58*100);// 57</span><br><span class="line">echo (int) (0.58*100);// 57</span><br><span class="line">echo round(0.58*100); // 58</span><br><span class="line">var_dump((0.1 + 0.7) == 0.8); // false</span><br></pre></td></tr></table></figure>
+<p>之所以出现上面的问题是因为PHP 是使用二进制表示浮点数的，这是支持二进制浮点数运算（绝大部分都是 IEEE-745浮点数表示法 的实现）的系统都存在一个现象（<a href="https://www.zhihu.com/question/20679634" target="_blank" rel="noopener">具体原因，想要知道的朋友可以点击这里查看</a>）。</p>
+<p>所以在浮点数转换整数的时候（比如微信支付接口支付金额需转换成单位）建议可以使用<strong>round()</strong>函数，或者计算的时候使用BC高精度函数。</p>
+<p><strong>常用的高精度函数如下：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">　　bcadd — 将两个高精度数字相加</span><br><span class="line"></span><br><span class="line">　　bccomp — 比较两个高精度数字，返回<span class="number">-1</span>, <span class="number">0</span>, <span class="number">1</span></span><br><span class="line"></span><br><span class="line">　　bcdiv — 将两个高精度数字相除</span><br><span class="line"></span><br><span class="line">　　bcmod — 求高精度数字余数</span><br><span class="line"></span><br><span class="line">　　bcmul — 将两个高精度数字相乘</span><br><span class="line"></span><br><span class="line">　　bcpow — 求高精度数字乘方</span><br><span class="line"></span><br><span class="line">　　bcpowmod — 求高精度数字乘方求模，数论里非常常用</span><br><span class="line"></span><br><span class="line">　　bcscale — 配置默认小数点位数，相当于就是Linux bc中的”scale=”</span><br><span class="line"></span><br><span class="line">　　bcsqrt — 求高精度数字平方根</span><br><span class="line"></span><br><span class="line">　　bcsub — 将两个高精度数字相减</span><br></pre></td></tr></table></figure>
+
+<p><strong>使用方法举例如下：</strong></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 两个高精度数比较</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $left</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $right</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> int $left==$right 返回 0 | $left&lt;$right 返回 -1 | $left&gt;$right 返回 1</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">var_dump(bccomp($left=<span class="number">4.45</span>, $right=<span class="number">5.54</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">// -1</span></span><br><span class="line">  </span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 两个高精度数相加</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $left</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $right</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> string </span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">var_dump(bcadd($left=<span class="number">1.0321456</span>, $right=<span class="number">0.0243456</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//1.05</span></span><br><span class="line"> </span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 两个高精度数相减</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $left</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $right</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> string </span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">var_dump(bcsub($left=<span class="number">1.0321456</span>, $right=<span class="number">3.0123456</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//-1.98</span></span><br><span class="line">  </span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 两个高精度数相除</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $left</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $right</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> string </span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">var_dump(bcdiv($left=<span class="number">6</span>, $right=<span class="number">5</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//1.20</span></span><br><span class="line"> </span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 两个高精度数相乘</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $left</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> float $right</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> string </span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">var_dump(bcmul($left=<span class="number">3.1415926</span>, $right=<span class="number">2.4569874566</span>, <span class="number">2</span>));</span><br><span class="line"><span class="comment">//7.71</span></span><br><span class="line"> </span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * 设置bc函数的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@access</span> global</span></span><br><span class="line"><span class="comment">  * <span class="doctag">@param</span> int $scale 精确到的小数点位数</span></span><br><span class="line"><span class="comment">  * </span></span><br><span class="line"><span class="comment">  * <span class="doctag">@return</span> void </span></span><br><span class="line"><span class="comment">  */</span> </span><br><span class="line">bcscale(<span class="number">3</span>);</span><br><span class="line">var_dump(bcdiv(<span class="string">'105'</span>, <span class="string">'6.55957'</span>)); </span><br><span class="line"><span class="comment">//16.007</span></span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.agphp.com/2018/10/27/php-float.html" title="PHP中的浮点数问题" target="_blank" rel="external">https://blog.agphp.com/2018/10/27/php-float.html</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/huhijay" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/huhijay" target="_blank"><span class="text-dark">Huhijay</span><small class="ml-1x">Web Developer</small></a></h3>
+        <div>喜欢宅，对新技术有追求，关注后端Web技术开发，喜欢coding。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/04/02/install-nodejs.html" title="Linux系统安装Nodejs"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2017/10/25/php-func-identity-verify.html" title="PHP常用函数-身份证格式校验"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,wechat,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/huhijay" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2020 Huhijay
+        
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+<script src="/js/plugin.min.js"></script>
+<script src="/js/application.js"></script>
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+<script src="/js/insight.js"></script>
+
+
+
+
+
+   
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: false,
+    appId: '55YM7lKEnBv0Y5l43Jk11rQ2-MdYXbMMI',
+    appKey: 'UUxwCy2jPiqkwGw3Gcn5xK4e',
+    placeholder: 'Just go go',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: false
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>
